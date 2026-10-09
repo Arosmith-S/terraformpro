@@ -16,13 +16,21 @@ resource "aws_instance" "demo2" {
 user_data = <<-EOF
   #!/bin/bash
   set -euxo pipefail
+
   exec > /var/log/user-data.log 2>&1
 
   apt-get update -y
   apt-get install -y docker.io
 
-  systemctl enable --now docker
+  systemctl enable docker
+  systemctl start docker
+
+  docker --version
+  systemctl status docker --no-pager
+
   usermod -aG docker ubuntu
+
+  docker pull httpd:2.4
 
   docker run -d \
     --name test \
@@ -50,13 +58,21 @@ resource "aws_instance" "demo3" {
 user_data = <<-EOF
   #!/bin/bash
   set -euxo pipefail
+
   exec > /var/log/user-data.log 2>&1
 
   apt-get update -y
   apt-get install -y docker.io
 
-  systemctl enable --now docker
+  systemctl enable docker
+  systemctl start docker
+
+  docker --version
+  systemctl status docker --no-pager
+
   usermod -aG docker ubuntu
+
+  docker pull httpd:2.4
 
   docker run -d \
     --name test \
