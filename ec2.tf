@@ -11,14 +11,26 @@ resource "aws_instance" "demo2" {
     Name ="projectins1"
     team = "sjce-devops1"
   }
-  user_data = <<-EOF
-    #!/bin/bash
-    apt-get update -y
-    apt-get install -y docker.io
-    systemctl enable --now docker
-    usermod -aG docker ubuntu
-    docker run -d --name test --restart always -p 8080:80 httpd:2.4
-  EOF
+  
+
+user_data = <<-EOF
+  #!/bin/bash
+  set -euxo pipefail
+  exec > /var/log/user-data.log 2>&1
+
+  apt-get update -y
+  apt-get install -y docker.io
+
+  systemctl enable --now docker
+  usermod -aG docker ubuntu
+
+  docker run -d \
+    --name test \
+    --restart always \
+    -p 8080:80 \
+    httpd:2.4
+EOF
+
 
 }
 resource "aws_instance" "demo3" {
@@ -34,14 +46,25 @@ resource "aws_instance" "demo3" {
     Name = "projectins2"
     team = "sjce-devops2"
   }
-  user_data = <<-EOF
-    #!/bin/bash
-    apt-get update -y
-    apt-get install -y docker.io
-    systemctl enable --now docker
-    usermod -aG docker ubuntu
-    docker run -d --name test --restart always -p 8080:80 httpd:2.4
-  EOF
+  
+user_data = <<-EOF
+  #!/bin/bash
+  set -euxo pipefail
+  exec > /var/log/user-data.log 2>&1
+
+  apt-get update -y
+  apt-get install -y docker.io
+
+  systemctl enable --now docker
+  usermod -aG docker ubuntu
+
+  docker run -d \
+    --name test \
+    --restart always \
+    -p 8080:80 \
+    httpd:2.4
+EOF
+
 }
 
 resource "aws_security_group" "allow_tls" {
@@ -84,11 +107,8 @@ resource "aws_vpc_security_group_ingress_rule" "local_host" {
 }
 resource "aws_vpc_security_group_egress_rule" "alloutbound" {
   security_group_id = aws_security_group.allow_tls.id
-
-  cidr_ipv4   = "0.0.0.0/0"
-  from_port   = 0
-  ip_protocol = "tcp"
-  to_port     = 0
+  ip_protocol       = "-1"
+  cidr_ipv4         = "0.0.0.0/0"
 }
 output "instance1_public_ip" {
   value = aws_instance.demo2.public_ip
